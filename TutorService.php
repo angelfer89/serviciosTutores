@@ -9,7 +9,7 @@ class TutorService extends REST_Controller {
     public function __construct(){
         
         header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Origin, Content-Type, Content-Length, Accept-Encoding, 'X-API-KEY");
+        header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding, X-API-KEY");
         header("Access-Control-Allow-Origin: *");
 
         //header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, X-Access-Token");
@@ -73,36 +73,75 @@ class TutorService extends REST_Controller {
 
     public function RegistrarTutor_post()
     {   
+        $request = $this->post();
+
         try{
+            
             $data = array(
-                'idTutor' => $this->input->post('telefono'),
-                'nombre' => $this->input->post('nombre'),
-                'direccion' => $this->input->post('direccion'),
-                'correo' => $this->input->post('correo'),
-                'telefono' => $this->input->post('telefono'),
-                'link' => $this->input->post('llink'),
-                'latitud' => null,
-                'longitud' => null,
-                'comentarios' => $this->input->post('comentarios'),
+                'idTutor' => time(),
+                'nombre' => $request['nombre'],
+                'direccion' => $request['direccion'],
+                'correo' => $request['correo'],
+                'telefono' => $request['telefono'],
+                'latitud' => $request['latitud'],
+                'longitud' => $request['longitud'],
+                'comentarios' => $request['comentarios'],
                 'fechaRegistro' => '2019',
                 'fechaUltimoPago' => null,            
                 'fechaProximoPago' => null,
                 'procesado' => false,
                 'activo' => false
-            );
+            ); 
             
-            $this->db->insert('tutor', $data);
+            $query = $this->db->insert('tutor', $data);
     
-            $db_error = $this->db->error();
-    
-            if(!empty($db_error)){
-                throw new Exception('Database error! Error Code [' . $db_error['code'] . '] Error: ' . $db_error['message']);            
+            if(!$query){
+                $db_error = $this->db->error();
+                throw new Exception('Database error! ' . $db_error['message']);  
             }
     
             $respuesta = array(
                 'error' => FALSE,
-                'idinsertado' => $this->db->insert_id()
+                'insertado' => "OK"
             );
+        }
+        catch(Exception $e){
+            $respuesta = array(
+                'error' => TRUE,
+                'mensaje' => $e->getMessage(),
+                'codeError' => $db_error['code']
+            );
+        }
+        finally{
+            $this->response($respuesta);
+        }
+    }
+    
+    public function ObtenerMaterias_get()
+    {
+        try{
+            
+            $query = $this->db->query('SELECT * FROM materias');
+
+            if(!$query){
+                $db_error = $this->db->error();
+                throw new Exception('Database error! Error Code [' . $db_error['code'] . '] Error: ' . $db_error['message']);  
+            }
+
+            $result = $query->result_array();
+
+            // Convierte el int de checked en true o false
+            for($i=0; $i<count($result); $i++){
+                $temp = $result[$i];
+                $temp['checked'] = ( $temp['checked'] == "0" ) ? false : true;
+                $result[$i] = $temp;
+            }
+
+            $respuesta = array(
+                'error' => FALSE,
+                'materias' => $result
+            );
+
         }
         catch(Exception $e){
             $respuesta = array(
@@ -112,10 +151,65 @@ class TutorService extends REST_Controller {
         }
         finally{
             $this->response($respuesta);
-        }
+        }  
     }
-    
-    
+
+    public function ObtenerDistanciaMaxima_get()
+    {
+        try{
+            
+            $query = $this->db->query('SELECT valor FROM parametros WHERE idParametro = 1');
+
+            if(!$query){
+                $db_error = $this->db->error();
+                throw new Exception('Database error! Error Code [' . $db_error['code'] . '] Error: ' . $db_error['message']);  
+            }
+
+            $respuesta = array(
+                'error' => FALSE,
+                'distancia' => $query->result_array()
+            );
+
+        }
+        catch(Exception $e){
+            $respuesta = array(
+                'error' => TRUE,
+                'mensaje' => $e->getMessage()
+            );
+        }
+        finally{
+            $this->response($respuesta);
+        }  
+    }
+
+    public function ObtenerNiveles_get()
+    {
+        try{
+            
+            $query = $this->db->query('SELECT * FROM niveles');
+
+            if(!$query){
+                $db_error = $this->db->error();
+                throw new Exception('Database error! Error Code [' . $db_error['code'] . '] Error: ' . $db_error['message']);  
+            }
+
+            $respuesta = array(
+                'error' => FALSE,
+                'niveles' => $query->result_array()
+            );
+
+        }
+        catch(Exception $e){
+            $respuesta = array(
+                'error' => TRUE,
+                'mensaje' => $e->getMessage()
+            );
+        }
+        finally{
+            $this->response($respuesta);
+        }  
+    }
+
     function getBoundaries($lat, $lng, $distance = 1, $earthRadius = 6371)
     {
         $return = array();
