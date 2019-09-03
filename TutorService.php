@@ -46,7 +46,7 @@ class TutorService extends REST_Controller {
             FROM tutor t INNER JOIN tutoresMaterias tm ON t.idTutor = tm.idTutor
             WHERE (t.latitud BETWEEN ' . $box['min_lat']. ' AND ' . $box['max_lat'] . ') 
             AND (t.longitud BETWEEN ' . $box['min_lng']. ' AND ' . $box['max_lng']. ') 
-            AND tm.idMateria = '. $idMateria .'
+            AND tm.idMateria = "' . $idMateria . '"
             HAVING distance < ' . $distance . '
             ORDER BY distance ASC');
 
