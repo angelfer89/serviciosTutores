@@ -40,7 +40,8 @@ class TutorService extends REST_Controller {
             //$lng =  -74.0524521;
             //$distance = 1; // Sitios que se encuentren en un radio de 1KM
             $box = $this->getBoundaries($lat, $lng, $distance);
-            $query = $this->db->query('SELECT t.nombre, (6371 * ACOS( SIN(RADIANS(t.latitud)) 
+            $query = $this->db->query('SELECT t.nombre,t.telefono, t.correo, t.direccion, 
+            (6371 * ACOS( SIN(RADIANS(t.latitud)) 
             * SIN(RADIANS(' . $lat . ')) + COS(RADIANS(t.longitud - ' . $lng . ')) 
             * COS(RADIANS(t.latitud)) * COS(RADIANS(' . $lat . ')))) AS distance 
             FROM tutor t INNER JOIN tutoresMaterias tm ON t.idTutor = tm.idTutor
@@ -86,7 +87,7 @@ class TutorService extends REST_Controller {
                 'latitud' => $request['latitud'],
                 'longitud' => $request['longitud'],
                 'comentarios' => $request['comentarios'],
-                'fechaRegistro' => '2019',
+                'fechaRegistro' => date(),
                 'fechaUltimoPago' => null,            
                 'fechaProximoPago' => null,
                 'procesado' => false,
