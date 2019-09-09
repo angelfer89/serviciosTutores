@@ -16,6 +16,7 @@ class TutorService extends REST_Controller {
 
         parent::__construct();
         $this->load->database();
+        $this->load->helper('date');
     }
     
 //http://www.michael-pratt.com/blog/7/Encontrar-Lugares-cercanos-con-MySQL-y-PHP/
@@ -40,7 +41,7 @@ class TutorService extends REST_Controller {
             //$lng =  -74.0524521;
             //$distance = 1; // Sitios que se encuentren en un radio de 1KM
             $box = $this->getBoundaries($lat, $lng, $distance);
-            $query = $this->db->query('SELECT t.nombre,t.telefono, t.correo, t.direccion, 
+            $query = $this->db->query('SELECT t.nombre,t.telefono, t.correo, t.direccion, t.latitud, t.longitud,
             (6371 * ACOS( SIN(RADIANS(t.latitud)) 
             * SIN(RADIANS(' . $lat . ')) + COS(RADIANS(t.longitud - ' . $lng . ')) 
             * COS(RADIANS(t.latitud)) * COS(RADIANS(' . $lat . ')))) AS distance 
@@ -75,6 +76,7 @@ class TutorService extends REST_Controller {
     public function RegistrarTutor_post()
     {   
         $request = $this->post();
+        $now = date("Y-m-d");
 
         try{
             
@@ -87,7 +89,7 @@ class TutorService extends REST_Controller {
                 'latitud' => $request['latitud'],
                 'longitud' => $request['longitud'],
                 'comentarios' => $request['comentarios'],
-                'fechaRegistro' => date(),
+                'fechaRegistro' => $now,
                 'fechaUltimoPago' => null,            
                 'fechaProximoPago' => null,
                 'procesado' => false,
