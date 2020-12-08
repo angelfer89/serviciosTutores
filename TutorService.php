@@ -23,23 +23,12 @@ class TutorService extends REST_Controller {
 
     public function ObtenerTutores_get()
     {
-        /*$query = $this->db->query('SELECT * FROM tutor');
-        
-        $respuesta = array(
-                'error' => FALSE,
-                'tutores' => $query->result_array()
-            );
-        
-        $this->response($respuesta);*/
         try{
             $idMateria = $this->uri->segment(3);
             $distance = $this->uri->segment(4);
             $lat = $this->uri->segment(5);
             $lng = $this->uri->segment(6);
-            
-            //$lat  =  4.6665578;
-            //$lng =  -74.0524521;
-            //$distance = 1; // Sitios que se encuentren en un radio de 1KM
+
             $box = $this->getBoundaries($lat, $lng, $distance);
             $query = $this->db->query('SELECT t.nombre,t.telefono, t.correo, t.direccion, t.latitud, t.longitud,
             (6371 * ACOS( SIN(RADIANS(t.latitud)) 
@@ -77,11 +66,12 @@ class TutorService extends REST_Controller {
     {   
         $request = $this->post();
         $now = date("Y-m-d");
+        $idTutor =  time();
 
         try{
             
             $data = array(
-                'idTutor' => time(),
+                'idTutor' => $idTutor,
                 'nombre' => $request['nombre'],
                 'direccion' => $request['direccion'],
                 'correo' => $request['correo'],
@@ -97,6 +87,7 @@ class TutorService extends REST_Controller {
             ); 
             
             $query = $this->db->insert('tutor', $data);
+
     
             if(!$query){
                 $db_error = $this->db->error();
@@ -105,7 +96,44 @@ class TutorService extends REST_Controller {
     
             $respuesta = array(
                 'error' => FALSE,
-                'insertado' => "OK"
+                'insertado' => $idTutor
+            );
+        }
+        catch(Exception $e){
+            $respuesta = array(
+                'error' => TRUE,
+                'mensaje' => $e->getMessage(),
+                'codeError' => $db_error['code']
+            );
+        }
+        finally{
+            $this->response($respuesta);
+        }
+    }
+
+    public function RegistrarMateriaSeleccionada_post()
+    {   
+        $request = $this->post();
+
+        try{
+            
+            $data = array(
+                'idTutor' => $request['idTutor'],
+                'idMateria' => $request['idMateria'],
+              
+            ); 
+            
+            $query = $this->db->insert('tutoresMaterias', $data);
+
+    
+            if(!$query){
+                $db_error = $this->db->error();
+                throw new Exception('Database error! ' . $db_error['message']);  
+            }
+    
+            $respuesta = array(
+                'error' => FALSE,
+                'insertado' => 'OK'
             );
         }
         catch(Exception $e){
@@ -212,6 +240,76 @@ class TutorService extends REST_Controller {
             $this->response($respuesta);
         }  
     }
+
+    public function EnviarEmail()
+    {
+         //Cargamos la librería email
+       $this->load->library('email');
+        
+       /*
+        * Configuramos los parámetros para enviar el email,
+        * las siguientes configuraciones es recomendable
+        * hacerlas en el fichero email.php dentro del directorio config,
+        * en este caso para hacer un ejemplo rápido lo hacemos
+        * en el propio controlador
+        */
+        
+       //Indicamos el protocolo a utilizar
+        $config['protocol'] = 'smtp';
+         
+       //El servidor de correo que utilizaremos
+        $config["smtp_host"] = 'smtp.gmail.com';
+         
+       //Nuestro usuario
+        $config["smtp_user"] = 'angel.salgado,ponce@gmail.com';
+         
+       //Nuestra contraseña
+        $config["smtp_pass"] = 'Firulais89';   
+         
+       //El puerto que utilizará el servidor smtp
+        $config["smtp_port"] = '587';
+        
+       //El juego de caracteres a utilizar
+        $config['charset'] = 'utf-8';
+ 
+       //Permitimos que se puedan cortar palabras
+        $config['wordwrap'] = TRUE;
+         
+       //El email debe ser valido 
+       $config['validate'] = true;
+       
+        
+      //Establecemos esta configuración
+        $this->email->initialize($config);
+ 
+      //Ponemos la dirección de correo que enviará el email y un nombre
+        $this->email->from('angel.salgado.ponce@gmail.com', 'Angel Salgado');
+         
+      /*
+       * Ponemos el o los destinatarios para los que va el email
+       * en este caso al ser un formulario de contacto te lo enviarás a ti
+       * mismo
+       */
+        $this->email->to('angel.salgado.ponce@gmail.com', 'Angel Salgado');
+         
+      //Definimos el asunto del mensaje
+        $this->email->subject($this->input->post("asunto"));
+         
+      //Definimos el mensaje a enviar
+        $this->email->message(
+                "Email: ".$this->input->post("email").
+                " Mensaje: ".$this->input->post("mensaje")
+                );
+         
+        //Enviamos el email y si se produce bien o mal que avise con una flasdata
+        if($this->email->send()){
+            $this->session->set_flashdata('envio', 'Email enviado correctamente');
+        }else{
+            $this->session->set_flashdata('envio', 'No se a enviado el email');
+        }
+
+    }
+    
 
     function getBoundaries($lat, $lng, $distance = 1, $earthRadius = 6371)
     {
