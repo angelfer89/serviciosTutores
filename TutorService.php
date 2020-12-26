@@ -9,7 +9,7 @@ class TutorService extends REST_Controller {
     public function __construct(){
         
         header("Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding, X-API-KEY");
+        header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding, THUTON-API-KEY");
         header("Access-Control-Allow-Origin: *");
 
         //header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, X-Access-Token");
@@ -34,7 +34,7 @@ class TutorService extends REST_Controller {
             (6371 * ACOS( SIN(RADIANS(t.latitud)) 
             * SIN(RADIANS(' . $lat . ')) + COS(RADIANS(t.longitud - ' . $lng . ')) 
             * COS(RADIANS(t.latitud)) * COS(RADIANS(' . $lat . ')))) AS distance 
-            FROM tutor t INNER JOIN tutoresMaterias tm ON t.idTutor = tm.idTutor
+            FROM tutor t INNER JOIN tutoresmaterias tm ON t.idTutor = tm.idTutor
             WHERE (t.latitud BETWEEN ' . $box['min_lat']. ' AND ' . $box['max_lat'] . ') 
             AND (t.longitud BETWEEN ' . $box['min_lng']. ' AND ' . $box['max_lng']. ') 
             AND tm.idMateria = "' . $idMateria . '"

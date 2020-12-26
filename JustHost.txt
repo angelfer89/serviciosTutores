@@ -1,0 +1,9 @@
+thuton.com
+Pitufin89_
+
+Base de datos: thutonco_thuton_dev
+
+Usuario: thutonco_thuton_admin
+contraseña: thutonadmin
+Usuario: thutonco_thuton_user
+contraseña: thutonuser
